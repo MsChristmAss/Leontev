@@ -32,10 +32,10 @@ int main()
 			edit_cs(cs);
 			break;
 		case '6':
-			//save_p_and_cs(p, cs);
+			save_p_and_cs(p, cs);
 			break;
 		case '7':
-			//download_p_and_cs(p, cs);
+			download_p_and_cs(p, cs);
 			break;
 		case '0':
 			exit(0);

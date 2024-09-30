@@ -20,5 +20,5 @@ void add_cs(compressor_station& cs);
 void view(const pipe& p, const compressor_station& cs);
 void edit_pipe(pipe& p);
 void edit_cs(compressor_station& cs);
-//void save_p_and_cs(const pipe& p, const compressor_station& cs);
-//void download_p_and_cs(pipe& p, compressor_station& cs);
+void save_p_and_cs(const pipe& p, const compressor_station& cs);
+void download_p_and_cs(pipe& p, compressor_station& cs);
