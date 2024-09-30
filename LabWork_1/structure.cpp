@@ -105,4 +105,35 @@ void view(const pipe& p, const compressor_station& cs)
 	cout << "Эффективность:  " << (cs.effective_cs == 0 ? "Данные отсутствуют" : to_string(cs.effective_cs)) << endl;
 
 }
+void edit_pipe(pipe& p)
+{
+	system("cls");
+	cout << "------------------------- РЕДАКТИРОВАНИЕ ТРУБЫ -------------------------" << endl;
+	cout << "Труба в ремонте? (y/n)  ";
+	char B;
+	cin >> B;
+	cin.ignore(numeric_limits<streamsize>::max(), '\n');
+	if (B == 'y') {
+		p.UnderRepair = true;
+	}
+	else {
+		p.UnderRepair = false;
+	}
+}
+
+void edit_cs(compressor_station& cs)
+{
+	system("cls");
+	cout << "------------------------- РЕДАКТИРОВАНИЕ ТРУБЫ -------------------------" << endl;
+	cout << "Количество рабочих цехов:  ";
+	while (true) {
+		cs.quantity_cs = readNumberWithGetLine();
+		if (cs.quantity_cs <= cs.quantity) {
+			break;
+		}
+		else {
+			cout << "Кол-во рабочих цехов не может быть больше кол-ва цехов!!!";
+		}
+	}
+}
 

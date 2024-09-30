@@ -26,10 +26,10 @@ int main()
 			view(p, cs);
 			break;
 		case '4':
-			//edit_pipe(p);
+			edit_pipe(p);
 			break;
 		case '5':
-			//edit_cs(cs);
+			edit_cs(cs);
 			break;
 		case '6':
 			//save_p_and_cs(p, cs);
