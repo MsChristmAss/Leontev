@@ -21,6 +21,8 @@ void Helper()
 	cout << "3 - Вывести объекты" << endl;
 	cout << "4 - Удаление" << endl;
 	cout << "5 - Редактирование" << endl;
+	cout << "6 - Сохранение" << endl;
+	cout << "7 - Загрузить" << endl;
 	cout << "0 - Выход" << endl << endl;
 }
 
@@ -51,6 +53,12 @@ int main()
 			break;
 		case 5:
 			edit();
+			break;
+		case 6:
+			save(getInput<int>("1 - труба\n2 - кс\n3 - всё\n\nВыбор ",1,3));
+			break;
+		case 7:
+			load();
 			break;
 		case 0:
 			cout << "Выход..." << endl;

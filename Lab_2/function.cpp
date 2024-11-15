@@ -1,52 +1,70 @@
 #include "pipe.h"
 #include "cs.h"
 
+#include <sstream>
+#include <fstream>
+#include <string>
 #include <unordered_set>
 #include <iostream>
 #include <algorithm> // для distance
 using namespace std;
 
-// Объявление unordered_set для хранения труб
+// Объявление
+int indexPipe = 0;
+int indexCS = 0;
 unordered_set<Pipe, Pipe::Hash> pipes;
 unordered_set<CS, CS::Hash> css;
 
+
+// Функция для логирования входных данных
+void logInput(const string& message) {
+	ofstream logFile("log.txt", ios::app);
+	if (logFile.is_open()) {
+		logFile << message << endl;
+	}
+	logFile.close();
+}
+
 // Функция добавления трубы в unordered_set
-void addPipe() {
+void addPipe() {  // Инициализация статического индекса
+	++indexPipe;
 	bool repairStatus;
 	string name = getInput<string>("Введите имя трубы: ", 1, 1);
-	int length = getInput<int>("Введите длину трубы (в метрах): ", 1, 2147483647);
-	int diameter = getInput<int>("Введите диаметр трубы (в милиметрах): ", 1, 2147483647);
+	int length = getInput<int>("Введите длину трубы (в метрах): ", 1, INT_MAX);
+	int diameter = getInput<int>("Введите диаметр трубы (в миллиметрах): ", 1, INT_MAX);
 	int status = getInput<int>("Введите характеристику в ремонте (1 - 'Требует ремонта', 0 - 'Не требует ремонта'): ", 0, 1);
-	if (status == 1) {
-		repairStatus = true;
-	}
-	else {
-		repairStatus = false;
-	}
-	Pipe newPipe(name, length, diameter, repairStatus);
+	repairStatus = (status == 1);
+
+	Pipe newPipe(indexPipe, name, length, diameter, repairStatus);
 	auto result = pipes.insert(newPipe);
 	if (result.second) {
-		cout << "Труба добавлена... " << endl;
+		cout << "Труба добавлена..." << endl;
 	}
 	else {
 		cout << "Труба с таким именем и характеристиками уже существует!" << endl;
 	}
 }
 
-void addCS() {
+// Функция добавления КС в unordered_set
+void addCS() {  // Инициализация статического индекса
+	++indexCS;
 	string name = getInput<string>("Введите имя КС: ", 0, 0);
-	int quantity = getInput<int>("Введите кол-во цехов: ", 1, 2147483647);;
+	int quantity = getInput<int>("Введите кол-во цехов: ", 1, INT_MAX);
 	int work_quantity = getInput<int>("Введите кол-во работающих цехов: ", 0, quantity);
-	float effective_cs = work_quantity * 100.0 / quantity;
-	CS newCS(name, quantity, work_quantity, effective_cs);
+	float effective_cs = work_quantity * 100.0f / quantity;
+
+	CS newCS(indexCS, name, quantity, work_quantity, effective_cs);
 	auto result = css.insert(newCS);
 	if (result.second) {
-		cout << "КС добавлена... " << endl;
+		cout << "КС добавлена..." << endl;
 	}
 	else {
 		cout << "КС с таким именем и характеристиками уже существует!" << endl;
 	}
 }
+
+// Остальные функции аналогично можно адаптировать, включая обработку ошибок ввода и оптимизацию удаления.
+
 
 void Print() {
 	cout << "1 - вывести все трубы\n2 - вывести все КС\n3 - вывести всё\n\n";
@@ -58,6 +76,7 @@ void Print() {
 		}
 		else {
 			for (const auto& pipe : pipes) {
+				cout << "Индекс " << pipe.index << endl;
 				cout << "Имя трубы: " << pipe.name << endl;
 				cout << "Длина: " << pipe.length << " м" << endl;
 				cout << "Диаметр: " << pipe.diameter << " мм" << endl;
@@ -73,6 +92,7 @@ void Print() {
 		}
 		else {
 			for (const auto& cs : css) {
+				cout << "Индекс " << cs.index << endl;
 				cout << "Имя КС: " << cs.name << endl;
 				cout << "Кол-во цехов: " << cs.quantity << endl;
 				cout << "Кол-во рабочих чехов: " << cs.work_quantity << endl;
@@ -88,6 +108,7 @@ void Print() {
 		}
 		else {
 			for (const auto& pipe : pipes) {
+				cout << "Индекс " << pipe.index << endl;
 				cout << "Имя трубы: " << pipe.name << endl;
 				cout << "Длина: " << pipe.length << " м" << endl;
 				cout << "Диаметр: " << pipe.diameter << " мм" << endl;
@@ -101,6 +122,7 @@ void Print() {
 		}
 		else {
 			for (const auto& cs : css) {
+				cout << "Индекс " << cs.index << endl;
 				cout << "Имя КС: " << cs.name << endl;
 				cout << "Кол-во цехов: " << cs.quantity << endl;
 				cout << "Кол-во рабочих чехов: " << cs.work_quantity << endl;
@@ -114,20 +136,19 @@ void Print() {
 }
 
 void remove() {
-	cout << "Удалить:\n1 - по индексу\n2 - по имени\n3 - по статусу\n4 - всё" << endl << endl;
-	int input = getInput<int>("Выбор:\n1 - труба\n2 - кс\n\nКоманда ", 1, 2);
+	cout << "Удалить:\n1 - по индексу\n2 - по имени\n3 - по статусу\n4 - всё\n0 - выйти" << endl << endl;
 	int choice = getInput<int>("\nКоманда ", 1, 4);
 	switch (choice)
 	{
+	case 0:
+		return;
 	case 1:
-		removeByIndex(getInput<int>("Индекс ", 0, pipes.size()), input);
+		removeByIndex(getInput<int>("Индекс ", 1, INT_MAX));
 		break;
 	case 2:
-		removeByName(getInput<string>("Имя ", 0, 1), input);
+		removeByName(getInput<string>("Имя ", 0, 1));
 		break;
 	case 3:
-
-	{
 		bool status;
 		if (getInput<int>("1 - 'Требует ремонта', 0 - 'Не требует ремонта': ", 0, 1) == 1) {
 			status = true;
@@ -136,19 +157,17 @@ void remove() {
 			status = false;
 		}
 		removePipesByStatus(status);
-	}
 		break;
 	case 4:
 		removeAll();
 		break;
 	}
-
 }
 
 void removeAll()
 {
 	cout << "1 - трубы\n2 - кс" << endl;
-	if (getInput<int>("Команда ", 1, 2) == 1)
+	if (getInput<int>("Команда удаления всех ", 1, 2) == 1)
 	{
 		auto it = pipes.begin();
 		while (it != pipes.end()) {
@@ -167,58 +186,57 @@ void removeAll()
 
 }
 
-void removeByIndex(int index, int choice) {
-	if (choice == 1)
-	{
-		if (index < 0 || index >= static_cast<int>(pipes.size())) {
-			cout << "Неверный индекс." << endl;
-			return;
+void removeByIndex(int ind) {
+	int choice;
+	auto pipeIt = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) { return pipe.index == ind; });
+	auto csIt = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.index == ind; });
+	if (pipeIt != pipes.end()) {
+		cout << "Труба с индексом " << ind << " найдена." << endl;
+		choice = getInput<int>("\nУдалить?\nДА - 1\nНЕТ - 0\n", 0, 1);
+		if (choice == 1) {
+			pipes.erase(pipeIt);
+			cout << "Труба с индексом " << ind << " удалена." << endl;
 		}
-		auto it = pipes.begin();
-		advance(it, index);
-		pipes.erase(it);
-		cout << "Труба удалена по индексу " << index << endl;
 	}
-	else
-	{
-		if (index < 0 || index >= static_cast<int>(css.size())) {
-			cout << "Неверный индекс." << endl;
-			return;
+	else {
+		cout << "Труба с индексом " << ind << " не найдена." << endl;
+	}
+	if (csIt != css.end()) {
+		cout << "КС с индексом " << ind << " найдена." << endl;
+		choice = getInput<int>("\nУдалить?\nДА - 1\nНЕТ - 0\n", 0, 1);
+		if (choice == 1) {
+			css.erase(csIt);
+			cout << "КС с индексом " << ind << " удалена." << endl;
 		}
-		auto it = css.begin();
-		advance(it, index);
-		css.erase(it);
-		cout << "КС удалена по индексу " << index << endl;
+	}
+	else {
+		cout << "КС с индексом " << ind << " не найдена." << endl;
+	}
+
+}
+
+
+
+void removeByName(const string& name) {
+	auto pipeIt = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) { return pipe.name == name; });
+	auto csIt = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.name == name; });
+	if (pipeIt != pipes.end()) {
+		pipes.erase(pipeIt);
+		cout << "Труба с именем \"" << name << "\" удалена." << endl;
+	}
+	else {
+		cout << "Труба с таким именем не найдена." << endl;
+	}
+
+	if (csIt != css.end()) {
+		css.erase(csIt);
+		cout << "КС с именем \"" << name << "\" удалена." << endl;
+	}
+	else {
+		cout << "КС с таким именем не найдена." << endl;
 	}
 }
 
-void removeByName(const string& name, int choice) {
-	if (choice == 1)
-	{
-		auto it = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) {
-			return pipe.name == name;
-			});
-		if (it != pipes.end()) {
-			pipes.erase(it);
-			cout << "Труба с именем \"" << name << "\" удалена." << endl;
-		}
-		else {
-			cout << "Труба с таким именем не найдена." << endl;
-		}
-	}
-	else{
-		auto it = find_if(css.begin(), css.end(), [&](const CS& cs) {
-			return cs.name == name;
-			});
-		if (it != css.end()) {
-			css.erase(it);
-			cout << "КС с именем \"" << name << "\" удалена." << endl;
-		}
-		else {
-			cout << "КС с таким именем не найдена." << endl;
-		}
-	}
-}
 
 void removePipesByStatus(bool status) {
 	auto it = pipes.begin();
@@ -240,52 +258,216 @@ void removePipesByStatus(bool status) {
 	}
 }
 
-void editPipe(int index) {	
-	if (index < 0 || index >= static_cast<int>(pipes.size())) {
-		cout << "Неверный индекс." << endl;
-		return;
-	}
-	auto it = pipes.begin();
-	advance(it, index);
-	Pipe updatedPipe = *it;
-	updatedPipe.repairStatus = !updatedPipe.repairStatus;
 
-	// Удаляем оригинал и добавляем обновленную трубу
-	pipes.erase(it);
-	pipes.insert(updatedPipe);
-
-	cout << "Статус трубы изменен на: "
-		<< (updatedPipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl;
-}
-
-void editCS(int index) {	
-	if (index < 0 || index >= static_cast<int>(css.size())) {
-		cout << "Неверный индекс." << endl;
-		return;
-	}
-	auto it = css.begin();
-	advance(it, index);
-	CS updatedCS = *it;
-	updatedCS.work_quantity = getInput<int>("Введите кол-во рабочих цехов: ",1, updatedCS.quantity);
-	css.erase(it);
-	css.insert(updatedCS);
-	cout << "Кол-во рабочих цехов изменено на " << updatedCS.work_quantity << endl;
-}
 
 void edit() {
-	cout << "Реактирование:\n1 - трубы\n2 - кс\n\n";
-	if (getInput<int>("Команда ", 1, 2) == 1) {
-		if (pipes.size() == 0) {
-			cout << "Нет труб для редактирования..." << endl;
-			return;
-		}
-		editPipe(getInput<int>("Индекс ", 0, pipes.size()));
+	int index = getInput<int>("Индекс ", 1, INT_MAX);
+	auto pipeIt = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) { return pipe.index == index; });
+	auto csIt = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.index == index; });
+
+	if (pipeIt == pipes.end()) {
+		cout << "Труба с указанным индексом не найдена." << endl;
+		return;
+	}
+	Pipe updatedPipe = *pipeIt;
+	updatedPipe.repairStatus = !updatedPipe.repairStatus;
+	pipes.erase(pipeIt);
+	pipes.insert(updatedPipe);
+	cout << "Статус трубы с индексом " << index << " изменен на: " << (updatedPipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl << endl;
+
+	if (csIt == css.end()) {
+		cout << "КС с указанным индексом не найдена." << endl;
+		return;
+	}
+	CS updatedCS = *csIt;
+	updatedCS.work_quantity = getInput<int>("Введите новое количество работающих цехов: ", 0, updatedCS.quantity);
+	updatedCS.effective_cs = updatedCS.work_quantity * 100.0f / updatedCS.quantity;
+	css.erase(csIt);
+	css.insert(updatedCS);
+	cout << "КС с индексом " << index << " обновлена. Количество рабочих цехов: " << updatedCS.work_quantity << ", эффективность: " << updatedCS.effective_cs << "%" << endl;
+}
+
+void save(int choice) {
+	if (choice == 1) {
+		savePipesToFile(pipes);
 	}
 	else {
-		if (css.size() == 0) {
-			cout << "Нет кс для редактирования..." << endl;
-			return;
-		}
-		editCS(getInput<int>("Индекс ", 0, css.size()));
+		saveCSsToFile(css);
 	}
 }
+
+void savePipesToFile(const unordered_set<Pipe, Pipe::Hash>& pipes) {
+	string fileName = getInput<string>("Имя файла ", 1, 1);
+	ofstream outFile(fileName);
+	if (outFile.is_open()) {
+		if (pipes.size() == 0) {
+			outFile << "Нет труб";
+			return;
+		}
+		for (const auto& pipe : pipes) {
+			outFile << "Pipe\n";
+			outFile << pipe.index << "\n";
+			outFile << pipe.name << "\n";
+			outFile << pipe.length << "\n";
+			outFile << pipe.diameter << "\n";
+			outFile << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << "\n";
+			outFile << "---------------------------------------\n";
+		}
+		outFile.close();
+		cout << "Трубы успешно сохранены в файл" << endl;
+	}
+	else {
+		cout << "Ошибка открытия файла для труб" << endl;
+	}
+}
+
+void saveCSsToFile(const unordered_set<CS, CS::Hash>& css) {
+	string fileName = getInput<string>("Имя файла ", 1, 1);
+	ofstream outFile(fileName);
+	if (outFile.is_open()) {
+		if (css.size() == 0) {
+			outFile << "Нет кс";
+			return;
+		}
+		for (const auto& cs : css) {
+			outFile << "CS\n";
+			outFile << cs.index << "\n";
+			outFile << cs.name << "\n";
+			outFile << cs.quantity << "\n";
+			outFile << cs.work_quantity << "\n";
+			outFile << cs.effective_cs << "\n";
+			outFile << "--------------------------------------\n";
+		}
+		outFile.close();
+		cout << "КС успешно сохранены в файл" << endl;
+	}
+	else {
+		cout << "Ошибка открытия файла для КС" << endl;
+	}
+}
+
+void load() {
+	string fileName = getInput<string>("Имя файла, из которого\nбудем выгружать данные: ", 1, 1);
+	ifstream inFile(fileName);
+	if (!inFile.is_open()) {
+		cout << "Файл не найден." << endl;
+		return;
+	}
+	string input;
+	getline(inFile, input);
+	if (input == "Нет кс" || input == "Нет труб") {
+		cout << "В файле ничего нет..." << endl << endl;
+		return;
+	}
+	download(fileName);
+}
+
+void download(string file) {
+	int ind;
+	int quantity;
+	int work_quantity;
+	bool repairStatus;
+	string name;
+	int length;
+	int diameter;
+
+	ifstream inFile(file);
+	string str;
+	{
+		while (!inFile.eof()) {
+			getline(inFile, str);
+			if (str == "Pipe") {
+				getline(inFile, str);
+				if (validateInput(str, ind, 1, INT_MAX)) {
+					ind = stoi(str);
+					if (ind <= indexPipe) {
+						ind = ++indexPipe;
+					}
+					else {
+						indexPipe = ind;
+					}
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				if (validateInput(str, name, 1, 1)) {
+					name = str;
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				if (validateInput(str, length, 1, INT_MAX)) {
+					length = stoi(str);
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				if (validateInput(str, diameter, 1, INT_MAX)) {
+					diameter = stoi(str);
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				if (validateInput(str, str, 1, 1) && str == "Требует ремонта") {
+					repairStatus = true;
+				}
+				else if (validateInput(str, str, 1, 1) && str == "Не требует ремонта") {
+					repairStatus = false;
+				}
+				getline(inFile, str);
+				Pipe newPipe(ind, name, length, diameter, repairStatus);
+				pipes.insert(newPipe);
+			}
+			else if (str == "CS") {
+				getline(inFile, str);
+				if (validateInput(str, ind, 1, INT_MAX)) {
+					ind = stoi(str);
+					if (ind <= indexCS) {
+						ind = ++indexCS;
+					}
+					else {
+						indexCS = ind;
+					}
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				if (validateInput(str, name, 1, 1)) {
+					name = str;
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				if (validateInput(str, quantity, 1, INT_MAX)) {
+					quantity = stoi(str);
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				if (validateInput(str, work_quantity, 1, quantity)) {
+					work_quantity = stoi(str);
+				}
+				else {
+					return;
+				}
+				getline(inFile, str);
+				float effective_cs = work_quantity * 100.0f / quantity;
+				CS newCS(ind, name, quantity, work_quantity, effective_cs);
+				css.insert(newCS);
+				getline(inFile, str);
+			}
+		}
+		inFile.close();
+		cout << "Успешно загружены" << endl;
+	}
+}
+
+
+

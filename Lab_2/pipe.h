@@ -6,37 +6,38 @@
 using namespace std;
 class Pipe {
 public:
+	int index;
 	string name;                // имя трубы
 	int length;                 // длина трубы
 	int diameter;               // диаметр трубы
 	bool repairStatus;          // характеристика в ремонте
 
 	// Конструктор класса
-	Pipe(const string& name, int length, int diameter, bool repairStatus)
-		: name(name), length(length), diameter(diameter), repairStatus(repairStatus) {}
+	Pipe(int index, const string& name, int length, int diameter, bool repairStatus)
+		: index(index), name(name), length(length), diameter(diameter), repairStatus(repairStatus) {}
 
 	// Операторы для сравнения для использования в unordered_set
 	bool operator==(const Pipe& other) const {
-		return name == other.name && length == other.length && diameter == other.diameter && repairStatus == other.repairStatus;
+		return index == other.index && name == other.name && length == other.length && diameter == other.diameter && repairStatus == other.repairStatus;
 	}
 
 	// Описание хеш-функции для Pipe
 	struct Hash {
 		size_t operator()(const Pipe& p) const {
-			return hash<string>()(p.name) ^ hash<int>()(p.length) ^ hash<int>()(p.diameter) ^ hash<bool>()(p.repairStatus);
+			return hash<int>()(p.index) ^ hash<string>()(p.name) ^ hash<int>()(p.length) ^ hash<int>()(p.diameter) ^ hash<bool>()(p.repairStatus);
 		}
 	};
 };
 
 void addPipe();
 void Print();
-void removeByIndex(int index, int choice);
-void removeByName(const string& name, int choice);
+void removeByIndex(int index);
+void removeByName(const string& name);
 void removePipesByStatus(bool status);
 void removeAll();
 void remove();
-void editPipe(int index);
 void edit();
+void logInput(const string& message);
 
 
 template<typename T>
@@ -47,6 +48,7 @@ T getInput(string str, int min, int max) {
 		while (true) {
 			cout << str;
 			getline(cin, input);
+			logInput(input);
 			if (input.empty()) {
 				cout << "Вы ничего не ввели..." << endl << endl;
 				continue;
@@ -59,6 +61,7 @@ T getInput(string str, int min, int max) {
 		while (true) {
 			cout << str;
 			getline(cin, input);
+			logInput(input);
 			if (input.empty()) {
 				cout << "Вы ничего не ввели..." << endl << endl;
 				continue;
@@ -96,4 +99,4 @@ T getInput(string str, int min, int max) {
 		}
 	}
 }
-//int a = getInput<int>("str", 0, 100);
+
