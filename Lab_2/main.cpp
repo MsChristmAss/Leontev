@@ -23,6 +23,7 @@ void Helper()
 	cout << "5 - Редактирование" << endl;
 	cout << "6 - Сохранение" << endl;
 	cout << "7 - Загрузить" << endl;
+	cout << "8 - Поиск по фильтрам" << endl;
 	cout << "0 - Выход" << endl << endl;
 }
 
@@ -35,7 +36,7 @@ int main()
 	int choice;
 	while (true)
 	{
-		choice = getInput<int>("Команда ", 0, 10);
+		choice = getInput<int>("Команда ", 0, 8);
 		system("cls");
 		switch (choice)
 		{
@@ -59,6 +60,9 @@ int main()
 			break;
 		case 7:
 			load();
+			break;
+		case 8:
+			filterSearch();
 			break;
 		case 0:
 			cout << "Выход..." << endl;

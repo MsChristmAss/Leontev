@@ -37,6 +37,12 @@ void saveCSsToFile(const unordered_set<CS, CS::Hash>& css);
 void load();
 void download(string file);
 
+void filterPipeByName(const string& name);
+void filterCSByName(const string& name);
+void filterPipeByRepairStatus(bool repairStatus);
+void filterCSByUnusedPercentage(float percentage);
+void filterSearch();
+
 template<typename T>
 bool validateInput(const string& input, T& result, int min, int max) {
     // Проверка типа string

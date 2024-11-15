@@ -291,7 +291,11 @@ void save(int choice) {
 	if (choice == 1) {
 		savePipesToFile(pipes);
 	}
+	else if (choice == 2) {
+		saveCSsToFile(css);
+	}
 	else {
+		savePipesToFile(pipes);
 		saveCSsToFile(css);
 	}
 }
@@ -469,5 +473,119 @@ void download(string file) {
 	}
 }
 
+void filterPipeByName(const string& name) {
+	cout << "Результаты поиска труб по имени: \"" << name << "\":" << endl;
+	bool found = false;
+	for (const auto& pipe : pipes) {
+		if (pipe.name.find(name) != string::npos) {  // Ищем вхождение подстроки
+			found = true;
+			cout << "Индекс: " << pipe.index << endl;
+			cout << "Имя трубы: " << pipe.name << endl;
+			cout << "Длина: " << pipe.length << " м" << endl;
+			cout << "Диаметр: " << pipe.diameter << " мм" << endl;
+			cout << "Статус ремонта: " << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl;
+			cout << "---------------------------------------" << endl;
+		}
+	}
+	if (!found) {
+		cout << "Трубы с таким именем не найдены." << endl;
+	}
+}
 
+void filterCSByName(const string& name) {
+	cout << "Результаты поиска КС по имени: \"" << name << "\":" << endl;
+	bool found = false;
+	for (const auto& cs : css) {
+		if (cs.name.find(name) != string::npos) {  // Ищем вхождение подстроки
+			found = true;
+			cout << "Индекс: " << cs.index << endl;
+			cout << "Имя КС: " << cs.name << endl;
+			cout << "Количество цехов: " << cs.quantity << endl;
+			cout << "Рабочие цехи: " << cs.work_quantity << endl;
+			cout << "Эффективность: " << cs.effective_cs << "%" << endl;
+			cout << "--------------------------------------" << endl;
+		}
+	}
+	if (!found) {
+		cout << "КС с таким именем не найдены." << endl;
+	}
+}
+
+void filterPipeByRepairStatus(bool repairStatus) {
+	cout << "Результаты поиска труб по статусу \"" << (repairStatus ? "Требует ремонта" : "Не требует ремонта") << "\":" << endl;
+	bool found = false;
+	for (const auto& pipe : pipes) {
+		if (pipe.repairStatus == repairStatus) {
+			found = true;
+			cout << "Индекс: " << pipe.index << endl;
+			cout << "Имя трубы: " << pipe.name << endl;
+			cout << "Длина: " << pipe.length << " м" << endl;
+			cout << "Диаметр: " << pipe.diameter << " мм" << endl;
+			cout << "Статус ремонта: " << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl;
+			cout << "---------------------------------------" << endl;
+		}
+	}
+	if (!found) {
+		cout << "Трубы с указанным статусом не найдены." << endl;
+	}
+}
+
+void filterCSByUnusedPercentage(float percentage) {
+	cout << "Результаты поиска КС с процентом незадействованных цехов >= " << percentage << "%:" << endl;
+	bool found = false;
+	for (const auto& cs : css) {
+		float unusedPercentage = 100.0f - cs.effective_cs;
+		if (unusedPercentage >= percentage) {
+			found = true;
+			cout << "Индекс: " << cs.index << endl;
+			cout << "Имя КС: " << cs.name << endl;
+			cout << "Количество цехов: " << cs.quantity << endl;
+			cout << "Рабочие цехи: " << cs.work_quantity << endl;
+			cout << "Эффективность: " << cs.effective_cs << "%" << endl;
+			cout << "Незадействованные цехи: " << unusedPercentage << "%" << endl;
+			cout << "--------------------------------------" << endl;
+		}
+	}
+	if (!found) {
+		cout << "КС с указанным процентом незадействованных цехов не найдены." << endl;
+	}
+}
+
+void filterSearch() {
+	cout << "Поиск:\n"
+		<< "1 - трубы по имени\n"
+		<< "2 - трубы по статусу ремонта\n"
+		<< "3 - КС по имени\n"
+		<< "4 - КС по проценту незадействованных цехов\n"
+		<< "0 - выйти" << endl;
+
+	int choice = getInput<int>("Выберите команду: ", 0, 4);
+
+	switch (choice) {
+	case 1: {
+		string name = getInput<string>("Введите имя трубы: ", 1, 1);
+		filterPipeByName(name);
+		break;
+	}
+	case 2: {
+		int status = getInput<int>("Введите статус ремонта (1 - требует ремонта, 0 - не требует ремонта): ", 0, 1);
+		filterPipeByRepairStatus(status == 1);
+		break;
+	}
+	case 3: {
+		string name = getInput<string>("Введите имя КС: ", 1, 1);
+		filterCSByName(name);
+		break;
+	}
+	case 4: {
+		float percentage = getInput<float>("Введите минимальный процент незадействованных цехов: ", 0, 100);
+		filterCSByUnusedPercentage(percentage);
+		break;
+	}
+	case 0:
+		return;
+	default:
+		cout << "Неверный выбор. Повторите попытку." << endl;
+	}
+}
 

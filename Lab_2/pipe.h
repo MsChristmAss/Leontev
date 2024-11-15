@@ -98,5 +98,36 @@ T getInput(string str, int min, int max) {
 			}
 		}
 	}
+	else if constexpr (is_same<T, float>::value || is_same<T, double>::value) {
+		while (true) {
+			cout << str;
+			getline(cin, input);
+			logInput(input);
+			if (input.empty()) {
+				cout << "Вы ничего не ввели..." << endl << endl;
+				continue;
+			}
+
+			try {
+				size_t pos;
+				result = stof(input, &pos);  // Преобразование строки в float
+				if (pos < input.size()) {
+					cout << "Ошибка: некорректный ввод числа с плавающей точкой." << endl << endl;
+				}
+				else if (result < min || result > max) {
+					cout << "Число вне допустимого диапазона (" << min << " - " << max << ")." << endl << endl;
+				}
+				else {
+					return result;
+				}
+			}
+			catch (const invalid_argument&) {
+				cout << "Ошибка ввода числа с плавающей точкой." << endl << endl;
+			}
+			catch (const out_of_range&) {
+				cout << "Число вне диапазона значений." << endl << endl;
+			}
+		}
+	}
 }
 
