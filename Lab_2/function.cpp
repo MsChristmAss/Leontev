@@ -1,156 +1,268 @@
-#include "pipe.h"
+п»ї#include "pipe.h"
 #include "cs.h"
 
+#include <iomanip> // Р”Р»СЏ С„РѕСЂРјР°С‚РёСЂРѕРІР°РЅРёСЏ РІС‹РІРѕРґР°
 #include <sstream>
 #include <fstream>
 #include <string>
 #include <unordered_set>
 #include <iostream>
-#include <algorithm> // для distance
+#include <chrono>
+#include <iomanip>
+#include <ctime>
+#include <algorithm>
 using namespace std;
 
-// Объявление
+// РћР±СЉСЏРІР»РµРЅРёРµ
 int indexPipe = 0;
 int indexCS = 0;
 unordered_set<Pipe, Pipe::Hash> pipes;
 unordered_set<CS, CS::Hash> css;
 
 
-// Функция для логирования входных данных
 void logInput(const string& message) {
-	ofstream logFile("log.txt", ios::app);
-	if (logFile.is_open()) {
-		logFile << message << endl;
+	static string filename;
+	if (filename.empty()) {
+		auto now = chrono::system_clock::now();
+		auto time_t_now = chrono::system_clock::to_time_t(now);
+		char timeBuffer[26];
+		ctime_s(timeBuffer, sizeof(timeBuffer), &time_t_now);
+		string Time = timeBuffer;
+		Time.erase(remove(Time.begin(), Time.end(), '\n'), Time.end());
+		replace(Time.begin(), Time.end(), ' ', '_');
+		replace(Time.begin(), Time.end(), ':', '-');
+
+		ostringstream filePath;
+		filePath << "logs/" << Time << ".txt";
+		filename = filePath.str();
 	}
+	ofstream logFile(filename, ios::app);
+	logFile << message << endl;
 	logFile.close();
 }
 
-// Функция добавления трубы в unordered_set
-void addPipe() {  // Инициализация статического индекса
+void addPipe() {
 	++indexPipe;
 	bool repairStatus;
-	string name = getInput<string>("Введите имя трубы: ", 1, 1);
-	int length = getInput<int>("Введите длину трубы (в метрах): ", 1, INT_MAX);
-	int diameter = getInput<int>("Введите диаметр трубы (в миллиметрах): ", 1, INT_MAX);
-	int status = getInput<int>("Введите характеристику в ремонте (1 - 'Требует ремонта', 0 - 'Не требует ремонта'): ", 0, 1);
+	string name = getInput<string>("Р’РІРµРґРёС‚Рµ РёРјСЏ С‚СЂСѓР±С‹: ", 1, 1);
+	int length = getInput<int>("Р’РІРµРґРёС‚Рµ РґР»РёРЅСѓ С‚СЂСѓР±С‹ (РІ РјРµС‚СЂР°С…): ", 1, INT_MAX);
+	int diameter = getInput<int>("Р’РІРµРґРёС‚Рµ РґРёР°РјРµС‚СЂ С‚СЂСѓР±С‹ (РІ РјРёР»Р»РёРјРµС‚СЂР°С…): ", 1, INT_MAX);
+	int status = getInput<int>("Р’РІРµРґРёС‚Рµ С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєСѓ РІ СЂРµРјРѕРЅС‚Рµ (1 - 'РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°', 0 - 'РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°'): ", 0, 1);
 	repairStatus = (status == 1);
 
 	Pipe newPipe(indexPipe, name, length, diameter, repairStatus);
 	auto result = pipes.insert(newPipe);
 	if (result.second) {
-		cout << "Труба добавлена..." << endl;
+		cout << "РўСЂСѓР±Р° РґРѕР±Р°РІР»РµРЅР°..." << endl;
 	}
 	else {
-		cout << "Труба с таким именем и характеристиками уже существует!" << endl;
+		cout << "РўСЂСѓР±Р° СЃ С‚Р°РєРёРј РёРјРµРЅРµРј Рё С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєР°РјРё СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚!" << endl;
 	}
 }
 
-// Функция добавления КС в unordered_set
-void addCS() {  // Инициализация статического индекса
+void addCS() {
 	++indexCS;
-	string name = getInput<string>("Введите имя КС: ", 0, 0);
-	int quantity = getInput<int>("Введите кол-во цехов: ", 1, INT_MAX);
-	int work_quantity = getInput<int>("Введите кол-во работающих цехов: ", 0, quantity);
+	string name = getInput<string>("Р’РІРµРґРёС‚Рµ РёРјСЏ РљРЎ: ", 0, 0);
+	int quantity = getInput<int>("Р’РІРµРґРёС‚Рµ РєРѕР»-РІРѕ С†РµС…РѕРІ: ", 1, INT_MAX);
+	int work_quantity = getInput<int>("Р’РІРµРґРёС‚Рµ РєРѕР»-РІРѕ СЂР°Р±РѕС‚Р°СЋС‰РёС… С†РµС…РѕРІ: ", 0, quantity);
 	float effective_cs = work_quantity * 100.0f / quantity;
 
 	CS newCS(indexCS, name, quantity, work_quantity, effective_cs);
 	auto result = css.insert(newCS);
 	if (result.second) {
-		cout << "КС добавлена..." << endl;
+		cout << "РљРЎ РґРѕР±Р°РІР»РµРЅР°..." << endl;
 	}
 	else {
-		cout << "КС с таким именем и характеристиками уже существует!" << endl;
+		cout << "РљРЎ СЃ С‚Р°РєРёРј РёРјРµРЅРµРј Рё С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєР°РјРё СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚!" << endl;
 	}
 }
 
-// Остальные функции аналогично можно адаптировать, включая обработку ошибок ввода и оптимизацию удаления.
+//void Print() {
+//	cout << "1 - РІС‹РІРµСЃС‚Рё РІСЃРµ С‚СЂСѓР±С‹\n2 - РІС‹РІРµСЃС‚Рё РІСЃРµ РљРЎ\n3 - РІС‹РІРµСЃС‚Рё РІСЃС‘\n\n";
+//	int input = getInput<int>("РљРѕРјР°РЅРґР° ", 1, 3);
+//	if (input == 1) {
+//		cout << "---------------- РўР РЈР‘Р« ----------------" << endl;
+//		if (pipes.empty()) {
+//			cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… С‚СЂСѓР±." << endl;
+//		}
+//		else {
+//			for (const auto& pipe : pipes) {
+//				cout << "РРЅРґРµРєСЃ " << pipe.index << endl;
+//				cout << "РРјСЏ С‚СЂСѓР±С‹: " << pipe.name << endl;
+//				cout << "Р”Р»РёРЅР°: " << pipe.length << " Рј" << endl;
+//				cout << "Р”РёР°РјРµС‚СЂ: " << pipe.diameter << " РјРј" << endl;
+//				cout << "РЎС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р°: " << (pipe.repairStatus ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << endl;
+//				cout << "---------------------------------------" << endl;
+//			}
+//		}
+//	}
+//	else if (input == 2) {
+//		cout << "----------------- РљРЎ -----------------" << endl;
+//		if (css.empty()) {
+//			cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РљРЎ." << endl;
+//		}
+//		else {
+//			for (const auto& cs : css) {
+//				cout << "РРЅРґРµРєСЃ " << cs.index << endl;
+//				cout << "РРјСЏ РљРЎ: " << cs.name << endl;
+//				cout << "РљРѕР»-РІРѕ С†РµС…РѕРІ: " << cs.quantity << endl;
+//				cout << "РљРѕР»-РІРѕ СЂР°Р±РѕС‡РёС… С‡РµС…РѕРІ: " << cs.work_quantity << endl;
+//				cout << "% СЂР°Р±РѕС‡РёС… С†РµС…РѕРІ: " << cs.effective_cs << endl;
+//				cout << "--------------------------------------" << endl;
+//			}
+//		}
+//	}
+//	else if (input == 3) {
+//		cout << "---------------- РўР РЈР‘Р« ----------------" << endl;
+//		if (pipes.empty()) {
+//			cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… С‚СЂСѓР±." << endl;
+//		}
+//		else {
+//			for (const auto& pipe : pipes) {
+//				cout << "РРЅРґРµРєСЃ " << pipe.index << endl;
+//				cout << "РРјСЏ С‚СЂСѓР±С‹: " << pipe.name << endl;
+//				cout << "Р”Р»РёРЅР°: " << pipe.length << " Рј" << endl;
+//				cout << "Р”РёР°РјРµС‚СЂ: " << pipe.diameter << " РјРј" << endl;
+//				cout << "РЎС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р°: " << (pipe.repairStatus ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << endl;
+//				cout << "---------------------------------------" << endl;
+//			}
+//		}
+//		cout << "----------------- РљРЎ -----------------" << endl;
+//		if (css.empty()) {
+//			cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РљРЎ." << endl;
+//		}
+//		else {
+//			for (const auto& cs : css) {
+//				cout << "РРЅРґРµРєСЃ " << cs.index << endl;
+//				cout << "РРјСЏ РљРЎ: " << cs.name << endl;
+//				cout << "РљРѕР»-РІРѕ С†РµС…РѕРІ: " << cs.quantity << endl;
+//				cout << "РљРѕР»-РІРѕ СЂР°Р±РѕС‡РёС… С‡РµС…РѕРІ: " << cs.work_quantity << endl;
+//				cout << "% СЂР°Р±РѕС‡РёС… С†РµС…РѕРІ: " << cs.effective_cs << endl;
+//				cout << "--------------------------------------" << endl;
+//			}
+//		}
+//	}
+//	cout << endl;
+//
+//}
 
 
 void Print() {
-	cout << "1 - вывести все трубы\n2 - вывести все КС\n3 - вывести всё\n\n";
-	int input = getInput<int>("Команда ", 1, 3);
-	if (input == 1) {
-		cout << "---------------- ТРУБЫ ----------------" << endl;
-		if (pipes.empty()) {
-			cout << "Нет доступных труб." << endl;
-		}
-		else {
-			for (const auto& pipe : pipes) {
-				cout << "Индекс " << pipe.index << endl;
-				cout << "Имя трубы: " << pipe.name << endl;
-				cout << "Длина: " << pipe.length << " м" << endl;
-				cout << "Диаметр: " << pipe.diameter << " мм" << endl;
-				cout << "Статус ремонта: " << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl;
-				cout << "---------------------------------------" << endl;
-			}
-		}
-	}
-	else if (input == 2) {
-		cout << "----------------- КС -----------------" << endl;
-		if (css.empty()) {
-			cout << "Нет доступных КС." << endl;
-		}
-		else {
-			for (const auto& cs : css) {
-				cout << "Индекс " << cs.index << endl;
-				cout << "Имя КС: " << cs.name << endl;
-				cout << "Кол-во цехов: " << cs.quantity << endl;
-				cout << "Кол-во рабочих чехов: " << cs.work_quantity << endl;
-				cout << "% рабочих цехов: " << cs.effective_cs << endl;
-				cout << "--------------------------------------" << endl;
-			}
-		}
-	}
-	else if (input == 3) {
-		cout << "---------------- ТРУБЫ ----------------" << endl;
-		if (pipes.empty()) {
-			cout << "Нет доступных труб." << endl;
-		}
-		else {
-			for (const auto& pipe : pipes) {
-				cout << "Индекс " << pipe.index << endl;
-				cout << "Имя трубы: " << pipe.name << endl;
-				cout << "Длина: " << pipe.length << " м" << endl;
-				cout << "Диаметр: " << pipe.diameter << " мм" << endl;
-				cout << "Статус ремонта: " << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl;
-				cout << "---------------------------------------" << endl;
-			}
-		}
-		cout << "----------------- КС -----------------" << endl;
-		if (css.empty()) {
-			cout << "Нет доступных КС." << endl;
-		}
-		else {
-			for (const auto& cs : css) {
-				cout << "Индекс " << cs.index << endl;
-				cout << "Имя КС: " << cs.name << endl;
-				cout << "Кол-во цехов: " << cs.quantity << endl;
-				cout << "Кол-во рабочих чехов: " << cs.work_quantity << endl;
-				cout << "% рабочих цехов: " << cs.effective_cs << endl;
-				cout << "--------------------------------------" << endl;
-			}
-		}
-	}
-	cout << endl;
+	const int fieldWidth = 35; // Р¤РёРєСЃРёСЂРѕРІР°РЅРЅР°СЏ С€РёСЂРёРЅР° РґР»СЏ РєР°Р¶РґРѕРіРѕ РїРѕР»СЏ
+	cout << string(fieldWidth * 2, '=') << endl;
+	cout << setw(fieldWidth) << left << (string(15, ' ') + "РўСЂСѓР±С‹");
+	cout << setw(fieldWidth - 2) << left << ("|" + string(16, ' ') + "РљРЎ" + string(15, ' ') + "|") << endl;
+	cout << string(fieldWidth * 2, '=') << endl;
 
+	auto pipeIt = pipes.begin();
+	auto csIt = css.begin();
+
+	while (pipeIt != pipes.end() || csIt != css.end()) {
+		// РРЅРґРµРєСЃС‹ С‚СЂСѓР± Рё РљРЎ
+		if (pipeIt != pipes.end()) {
+			cout << setw(fieldWidth) << left << ("РРЅРґРµРєСЃ: " + to_string(pipeIt->index));
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+
+		if (csIt != css.end()) {
+			cout << setw(fieldWidth) << left << ("РРЅРґРµРєСЃ: " + to_string(csIt->index));
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+		cout << endl;
+
+		// РРјРµРЅР° С‚СЂСѓР± Рё РљРЎ
+		if (pipeIt != pipes.end()) {
+			cout << setw(fieldWidth) << left << ("РРјСЏ: " + pipeIt->name);
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+
+		if (csIt != css.end()) {
+			cout << setw(fieldWidth) << left << ("РРјСЏ: " + csIt->name);
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+		cout << endl;
+
+		// Р”Р»РёРЅР° Рё РєРѕР»РёС‡РµСЃС‚РІРѕ С†РµС…РѕРІ
+		if (pipeIt != pipes.end()) {
+			cout << setw(fieldWidth) << left << ("Р”Р»РёРЅР°: " + to_string(pipeIt->length) + " Рј");
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+
+		if (csIt != css.end()) {
+			cout << setw(fieldWidth) << left << ("Р¦РµС…РѕРІ: " + to_string(csIt->quantity));
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+		cout << endl;
+
+		// Р”РёР°РјРµС‚СЂ Рё СЂР°Р±РѕС‡РёРµ С†РµС…Рё
+		if (pipeIt != pipes.end()) {
+			cout << setw(fieldWidth) << left << ("Р”РёР°РјРµС‚СЂ: " + to_string(pipeIt->diameter) + " РјРј");
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+
+		if (csIt != css.end()) {
+			cout << setw(fieldWidth) << left << ("Р Р°Р±РѕС‡РёС…: " + to_string(csIt->work_quantity));
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+		cout << endl;
+
+		// Р РµРјРѕРЅС‚ Рё СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚СЊ
+		if (pipeIt != pipes.end()) {
+			cout << setw(fieldWidth) << left << ("Р РµРјРѕРЅС‚: " + string(pipeIt->repairStatus ? "Р”Р°" : "РќРµС‚"));
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+
+		if (csIt != css.end()) {
+			cout << setw(fieldWidth) << left << ("Р­С„С„РµРєС‚.: " + to_string(csIt->effective_cs) + "%");
+		}
+		else {
+			cout << setw(fieldWidth) << " ";
+		}
+		cout << endl;
+
+		cout << string(fieldWidth * 2, '-') << endl;
+
+		// РџРµСЂРµС…РѕРґ Рє СЃР»РµРґСѓСЋС‰РµРјСѓ РѕР±СЉРµРєС‚Сѓ
+		if (pipeIt != pipes.end()) ++pipeIt;
+		if (csIt != css.end()) ++csIt;
+	}
 }
 
+
 void remove() {
-	cout << "Удалить:\n1 - по индексу\n2 - по имени\n3 - по статусу\n4 - всё\n0 - выйти" << endl << endl;
-	int choice = getInput<int>("\nКоманда ", 1, 4);
+	cout << "РЈРґР°Р»РёС‚СЊ:\n1 - РїРѕ РёРЅРґРµРєСЃСѓ\n2 - РїРѕ РёРјРµРЅРё\n3 - РїРѕ СЃС‚Р°С‚СѓСЃСѓ\n4 - РІСЃС‘\n0 - РІС‹Р№С‚Рё" << endl << endl;
+	int choice = getInput<int>("\nРљРѕРјР°РЅРґР° ", 1, 4);
 	switch (choice)
 	{
 	case 0:
 		return;
 	case 1:
-		removeByIndex(getInput<int>("Индекс ", 1, INT_MAX));
+		removeByIndex(getInput<int>("РРЅРґРµРєСЃ ", 1, INT_MAX));
 		break;
 	case 2:
-		removeByName(getInput<string>("Имя ", 0, 1));
+		removeByName(getInput<string>("РРјСЏ ", 0, 1));
 		break;
 	case 3:
 		bool status;
-		if (getInput<int>("1 - 'Требует ремонта', 0 - 'Не требует ремонта': ", 0, 1) == 1) {
+		if (getInput<int>("1 - 'РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°', 0 - 'РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°': ", 0, 1) == 1) {
 			status = true;
 		}
 		else {
@@ -166,14 +278,14 @@ void remove() {
 
 void removeAll()
 {
-	cout << "1 - трубы\n2 - кс" << endl;
-	if (getInput<int>("Команда удаления всех ", 1, 2) == 1)
+	cout << "1 - С‚СЂСѓР±С‹\n2 - РєСЃ" << endl;
+	if (getInput<int>("РљРѕРјР°РЅРґР° СѓРґР°Р»РµРЅРёСЏ РІСЃРµС… ", 1, 2) == 1)
 	{
 		auto it = pipes.begin();
 		while (it != pipes.end()) {
 			it = pipes.erase(it);
 		}
-		cout << "Все трубы удалены..." << endl;
+		cout << "Р’СЃРµ С‚СЂСѓР±С‹ СѓРґР°Р»РµРЅС‹..." << endl;
 	}
 	else
 	{
@@ -181,7 +293,7 @@ void removeAll()
 		while (it != css.end()) {
 			it = css.erase(it);
 		}
-		cout << "Все КС удалены..." << endl;
+		cout << "Р’СЃРµ РљРЎ СѓРґР°Р»РµРЅС‹..." << endl;
 	}
 
 }
@@ -191,26 +303,26 @@ void removeByIndex(int ind) {
 	auto pipeIt = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) { return pipe.index == ind; });
 	auto csIt = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.index == ind; });
 	if (pipeIt != pipes.end()) {
-		cout << "Труба с индексом " << ind << " найдена." << endl;
-		choice = getInput<int>("\nУдалить?\nДА - 1\nНЕТ - 0\n", 0, 1);
+		cout << "РўСЂСѓР±Р° СЃ РёРЅРґРµРєСЃРѕРј " << ind << " РЅР°Р№РґРµРЅР°." << endl;
+		choice = getInput<int>("\nРЈРґР°Р»РёС‚СЊ?\nР”Рђ - 1\nРќР•Рў - 0\n", 0, 1);
 		if (choice == 1) {
 			pipes.erase(pipeIt);
-			cout << "Труба с индексом " << ind << " удалена." << endl;
+			cout << "РўСЂСѓР±Р° СЃ РёРЅРґРµРєСЃРѕРј " << ind << " СѓРґР°Р»РµРЅР°." << endl;
 		}
 	}
 	else {
-		cout << "Труба с индексом " << ind << " не найдена." << endl;
+		cout << "РўСЂСѓР±Р° СЃ РёРЅРґРµРєСЃРѕРј " << ind << " РЅРµ РЅР°Р№РґРµРЅР°." << endl;
 	}
 	if (csIt != css.end()) {
-		cout << "КС с индексом " << ind << " найдена." << endl;
-		choice = getInput<int>("\nУдалить?\nДА - 1\nНЕТ - 0\n", 0, 1);
+		cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << ind << " РЅР°Р№РґРµРЅР°." << endl;
+		choice = getInput<int>("\nРЈРґР°Р»РёС‚СЊ?\nР”Рђ - 1\nРќР•Рў - 0\n", 0, 1);
 		if (choice == 1) {
 			css.erase(csIt);
-			cout << "КС с индексом " << ind << " удалена." << endl;
+			cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << ind << " СѓРґР°Р»РµРЅР°." << endl;
 		}
 	}
 	else {
-		cout << "КС с индексом " << ind << " не найдена." << endl;
+		cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << ind << " РЅРµ РЅР°Р№РґРµРЅР°." << endl;
 	}
 
 }
@@ -222,18 +334,18 @@ void removeByName(const string& name) {
 	auto csIt = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.name == name; });
 	if (pipeIt != pipes.end()) {
 		pipes.erase(pipeIt);
-		cout << "Труба с именем \"" << name << "\" удалена." << endl;
+		cout << "РўСЂСѓР±Р° СЃ РёРјРµРЅРµРј \"" << name << "\" СѓРґР°Р»РµРЅР°." << endl;
 	}
 	else {
-		cout << "Труба с таким именем не найдена." << endl;
+		cout << "РўСЂСѓР±Р° СЃ С‚Р°РєРёРј РёРјРµРЅРµРј РЅРµ РЅР°Р№РґРµРЅР°." << endl;
 	}
 
 	if (csIt != css.end()) {
 		css.erase(csIt);
-		cout << "КС с именем \"" << name << "\" удалена." << endl;
+		cout << "РљРЎ СЃ РёРјРµРЅРµРј \"" << name << "\" СѓРґР°Р»РµРЅР°." << endl;
 	}
 	else {
-		cout << "КС с таким именем не найдена." << endl;
+		cout << "РљРЎ СЃ С‚Р°РєРёРј РёРјРµРЅРµРј РЅРµ РЅР°Р№РґРµРЅР°." << endl;
 	}
 }
 
@@ -251,40 +363,40 @@ void removePipesByStatus(bool status) {
 		}
 	}
 	if (found) {
-		cout << "Трубы со статусом \"" << (status ? "Требует ремонта" : "Не требует ремонта") << "\" удалены." << endl;
+		cout << "РўСЂСѓР±С‹ СЃРѕ СЃС‚Р°С‚СѓСЃРѕРј \"" << (status ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << "\" СѓРґР°Р»РµРЅС‹." << endl;
 	}
 	else {
-		cout << "Трубы с таким статусом не найдены." << endl;
+		cout << "РўСЂСѓР±С‹ СЃ С‚Р°РєРёРј СЃС‚Р°С‚СѓСЃРѕРј РЅРµ РЅР°Р№РґРµРЅС‹." << endl;
 	}
 }
 
 
 
 void edit() {
-	int index = getInput<int>("Индекс ", 1, INT_MAX);
+	int index = getInput<int>("РРЅРґРµРєСЃ ", 1, INT_MAX);
 	auto pipeIt = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) { return pipe.index == index; });
 	auto csIt = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.index == index; });
 
 	if (pipeIt == pipes.end()) {
-		cout << "Труба с указанным индексом не найдена." << endl;
+		cout << "РўСЂСѓР±Р° СЃ СѓРєР°Р·Р°РЅРЅС‹Рј РёРЅРґРµРєСЃРѕРј РЅРµ РЅР°Р№РґРµРЅР°." << endl;
 		return;
 	}
 	Pipe updatedPipe = *pipeIt;
 	updatedPipe.repairStatus = !updatedPipe.repairStatus;
 	pipes.erase(pipeIt);
 	pipes.insert(updatedPipe);
-	cout << "Статус трубы с индексом " << index << " изменен на: " << (updatedPipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl << endl;
+	cout << "РЎС‚Р°С‚СѓСЃ С‚СЂСѓР±С‹ СЃ РёРЅРґРµРєСЃРѕРј " << index << " РёР·РјРµРЅРµРЅ РЅР°: " << (updatedPipe.repairStatus ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << endl << endl;
 
 	if (csIt == css.end()) {
-		cout << "КС с указанным индексом не найдена." << endl;
+		cout << "РљРЎ СЃ СѓРєР°Р·Р°РЅРЅС‹Рј РёРЅРґРµРєСЃРѕРј РЅРµ РЅР°Р№РґРµРЅР°." << endl;
 		return;
 	}
 	CS updatedCS = *csIt;
-	updatedCS.work_quantity = getInput<int>("Введите новое количество работающих цехов: ", 0, updatedCS.quantity);
+	updatedCS.work_quantity = getInput<int>("Р’РІРµРґРёС‚Рµ РЅРѕРІРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЂР°Р±РѕС‚Р°СЋС‰РёС… С†РµС…РѕРІ: ", 0, updatedCS.quantity);
 	updatedCS.effective_cs = updatedCS.work_quantity * 100.0f / updatedCS.quantity;
 	css.erase(csIt);
 	css.insert(updatedCS);
-	cout << "КС с индексом " << index << " обновлена. Количество рабочих цехов: " << updatedCS.work_quantity << ", эффективность: " << updatedCS.effective_cs << "%" << endl;
+	cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << index << " РѕР±РЅРѕРІР»РµРЅР°. РљРѕР»РёС‡РµСЃС‚РІРѕ СЂР°Р±РѕС‡РёС… С†РµС…РѕРІ: " << updatedCS.work_quantity << ", СЌС„С„РµРєС‚РёРІРЅРѕСЃС‚СЊ: " << updatedCS.effective_cs << "%" << endl;
 }
 
 void save(int choice) {
@@ -301,11 +413,11 @@ void save(int choice) {
 }
 
 void savePipesToFile(const unordered_set<Pipe, Pipe::Hash>& pipes) {
-	string fileName = getInput<string>("Имя файла ", 1, 1);
+	string fileName = getInput<string>("РРјСЏ С„Р°Р№Р»Р° ", 1, 1);
 	ofstream outFile(fileName);
 	if (outFile.is_open()) {
 		if (pipes.size() == 0) {
-			outFile << "Нет труб";
+			outFile << "РќРµС‚ С‚СЂСѓР±";
 			return;
 		}
 		for (const auto& pipe : pipes) {
@@ -314,23 +426,23 @@ void savePipesToFile(const unordered_set<Pipe, Pipe::Hash>& pipes) {
 			outFile << pipe.name << "\n";
 			outFile << pipe.length << "\n";
 			outFile << pipe.diameter << "\n";
-			outFile << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << "\n";
+			outFile << (pipe.repairStatus ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << "\n";
 			outFile << "---------------------------------------\n";
 		}
 		outFile.close();
-		cout << "Трубы успешно сохранены в файл" << endl;
+		cout << "РўСЂСѓР±С‹ СѓСЃРїРµС€РЅРѕ СЃРѕС…СЂР°РЅРµРЅС‹ РІ С„Р°Р№Р»" << endl;
 	}
 	else {
-		cout << "Ошибка открытия файла для труб" << endl;
+		cout << "РћС€РёР±РєР° РѕС‚РєСЂС‹С‚РёСЏ С„Р°Р№Р»Р° РґР»СЏ С‚СЂСѓР±" << endl;
 	}
 }
 
 void saveCSsToFile(const unordered_set<CS, CS::Hash>& css) {
-	string fileName = getInput<string>("Имя файла ", 1, 1);
+	string fileName = getInput<string>("РРјСЏ С„Р°Р№Р»Р° ", 1, 1);
 	ofstream outFile(fileName);
 	if (outFile.is_open()) {
 		if (css.size() == 0) {
-			outFile << "Нет кс";
+			outFile << "РќРµС‚ РєСЃ";
 			return;
 		}
 		for (const auto& cs : css) {
@@ -343,24 +455,24 @@ void saveCSsToFile(const unordered_set<CS, CS::Hash>& css) {
 			outFile << "--------------------------------------\n";
 		}
 		outFile.close();
-		cout << "КС успешно сохранены в файл" << endl;
+		cout << "РљРЎ СѓСЃРїРµС€РЅРѕ СЃРѕС…СЂР°РЅРµРЅС‹ РІ С„Р°Р№Р»" << endl;
 	}
 	else {
-		cout << "Ошибка открытия файла для КС" << endl;
+		cout << "РћС€РёР±РєР° РѕС‚РєСЂС‹С‚РёСЏ С„Р°Р№Р»Р° РґР»СЏ РљРЎ" << endl;
 	}
 }
 
 void load() {
-	string fileName = getInput<string>("Имя файла, из которого\nбудем выгружать данные: ", 1, 1);
+	string fileName = getInput<string>("РРјСЏ С„Р°Р№Р»Р°, РёР· РєРѕС‚РѕСЂРѕРіРѕ\nР±СѓРґРµРј РІС‹РіСЂСѓР¶Р°С‚СЊ РґР°РЅРЅС‹Рµ: ", 1, 1);
 	ifstream inFile(fileName);
 	if (!inFile.is_open()) {
-		cout << "Файл не найден." << endl;
+		cout << "Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ." << endl;
 		return;
 	}
 	string input;
 	getline(inFile, input);
-	if (input == "Нет кс" || input == "Нет труб") {
-		cout << "В файле ничего нет..." << endl << endl;
+	if (input == "РќРµС‚ РєСЃ" || input == "РќРµС‚ С‚СЂСѓР±") {
+		cout << "Р’ С„Р°Р№Р»Рµ РЅРёС‡РµРіРѕ РЅРµС‚..." << endl << endl;
 		return;
 	}
 	download(fileName);
@@ -416,10 +528,10 @@ void download(string file) {
 					return;
 				}
 				getline(inFile, str);
-				if (validateInput(str, str, 1, 1) && str == "Требует ремонта") {
+				if (validateInput(str, str, 1, 1) && str == "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") {
 					repairStatus = true;
 				}
-				else if (validateInput(str, str, 1, 1) && str == "Не требует ремонта") {
+				else if (validateInput(str, str, 1, 1) && str == "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") {
 					repairStatus = false;
 				}
 				getline(inFile, str);
@@ -469,123 +581,210 @@ void download(string file) {
 			}
 		}
 		inFile.close();
-		cout << "Успешно загружены" << endl;
+		cout << "РЈСЃРїРµС€РЅРѕ Р·Р°РіСЂСѓР¶РµРЅС‹" << endl;
 	}
 }
 
 void filterPipeByName(const string& name) {
-	cout << "Результаты поиска труб по имени: \"" << name << "\":" << endl;
+	cout << "Р РµР·СѓР»СЊС‚Р°С‚С‹ РїРѕРёСЃРєР° С‚СЂСѓР± РїРѕ РёРјРµРЅРё: \"" << name << "\":" << endl;
 	bool found = false;
 	for (const auto& pipe : pipes) {
-		if (pipe.name.find(name) != string::npos) {  // Ищем вхождение подстроки
+		if (pipe.name.find(name) != string::npos) {  // РС‰РµРј РІС…РѕР¶РґРµРЅРёРµ РїРѕРґСЃС‚СЂРѕРєРё
 			found = true;
-			cout << "Индекс: " << pipe.index << endl;
-			cout << "Имя трубы: " << pipe.name << endl;
-			cout << "Длина: " << pipe.length << " м" << endl;
-			cout << "Диаметр: " << pipe.diameter << " мм" << endl;
-			cout << "Статус ремонта: " << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl;
+			cout << "РРЅРґРµРєСЃ: " << pipe.index << endl;
+			cout << "РРјСЏ С‚СЂСѓР±С‹: " << pipe.name << endl;
+			cout << "Р”Р»РёРЅР°: " << pipe.length << " Рј" << endl;
+			cout << "Р”РёР°РјРµС‚СЂ: " << pipe.diameter << " РјРј" << endl;
+			cout << "РЎС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р°: " << (pipe.repairStatus ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << endl;
 			cout << "---------------------------------------" << endl;
 		}
 	}
 	if (!found) {
-		cout << "Трубы с таким именем не найдены." << endl;
+		cout << "РўСЂСѓР±С‹ СЃ С‚Р°РєРёРј РёРјРµРЅРµРј РЅРµ РЅР°Р№РґРµРЅС‹." << endl;
 	}
 }
 
 void filterCSByName(const string& name) {
-	cout << "Результаты поиска КС по имени: \"" << name << "\":" << endl;
+	cout << "Р РµР·СѓР»СЊС‚Р°С‚С‹ РїРѕРёСЃРєР° РљРЎ РїРѕ РёРјРµРЅРё: \"" << name << "\":" << endl;
 	bool found = false;
 	for (const auto& cs : css) {
-		if (cs.name.find(name) != string::npos) {  // Ищем вхождение подстроки
+		if (cs.name.find(name) != string::npos) {  // РС‰РµРј РІС…РѕР¶РґРµРЅРёРµ РїРѕРґСЃС‚СЂРѕРєРё
 			found = true;
-			cout << "Индекс: " << cs.index << endl;
-			cout << "Имя КС: " << cs.name << endl;
-			cout << "Количество цехов: " << cs.quantity << endl;
-			cout << "Рабочие цехи: " << cs.work_quantity << endl;
-			cout << "Эффективность: " << cs.effective_cs << "%" << endl;
+			cout << "РРЅРґРµРєСЃ: " << cs.index << endl;
+			cout << "РРјСЏ РљРЎ: " << cs.name << endl;
+			cout << "РљРѕР»РёС‡РµСЃС‚РІРѕ С†РµС…РѕРІ: " << cs.quantity << endl;
+			cout << "Р Р°Р±РѕС‡РёРµ С†РµС…Рё: " << cs.work_quantity << endl;
+			cout << "Р­С„С„РµРєС‚РёРІРЅРѕСЃС‚СЊ: " << cs.effective_cs << "%" << endl;
 			cout << "--------------------------------------" << endl;
 		}
 	}
 	if (!found) {
-		cout << "КС с таким именем не найдены." << endl;
+		cout << "РљРЎ СЃ С‚Р°РєРёРј РёРјРµРЅРµРј РЅРµ РЅР°Р№РґРµРЅС‹." << endl;
 	}
 }
 
 void filterPipeByRepairStatus(bool repairStatus) {
-	cout << "Результаты поиска труб по статусу \"" << (repairStatus ? "Требует ремонта" : "Не требует ремонта") << "\":" << endl;
+	cout << "Р РµР·СѓР»СЊС‚Р°С‚С‹ РїРѕРёСЃРєР° С‚СЂСѓР± РїРѕ СЃС‚Р°С‚СѓСЃСѓ \"" << (repairStatus ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << "\":" << endl;
 	bool found = false;
 	for (const auto& pipe : pipes) {
 		if (pipe.repairStatus == repairStatus) {
 			found = true;
-			cout << "Индекс: " << pipe.index << endl;
-			cout << "Имя трубы: " << pipe.name << endl;
-			cout << "Длина: " << pipe.length << " м" << endl;
-			cout << "Диаметр: " << pipe.diameter << " мм" << endl;
-			cout << "Статус ремонта: " << (pipe.repairStatus ? "Требует ремонта" : "Не требует ремонта") << endl;
+			cout << "РРЅРґРµРєСЃ: " << pipe.index << endl;
+			cout << "РРјСЏ С‚СЂСѓР±С‹: " << pipe.name << endl;
+			cout << "Р”Р»РёРЅР°: " << pipe.length << " Рј" << endl;
+			cout << "Р”РёР°РјРµС‚СЂ: " << pipe.diameter << " РјРј" << endl;
+			cout << "РЎС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р°: " << (pipe.repairStatus ? "РўСЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°" : "РќРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°") << endl;
 			cout << "---------------------------------------" << endl;
 		}
 	}
 	if (!found) {
-		cout << "Трубы с указанным статусом не найдены." << endl;
+		cout << "РўСЂСѓР±С‹ СЃ СѓРєР°Р·Р°РЅРЅС‹Рј СЃС‚Р°С‚СѓСЃРѕРј РЅРµ РЅР°Р№РґРµРЅС‹." << endl;
 	}
 }
 
 void filterCSByUnusedPercentage(float percentage) {
-	cout << "Результаты поиска КС с процентом незадействованных цехов >= " << percentage << "%:" << endl;
+	cout << "Р РµР·СѓР»СЊС‚Р°С‚С‹ РїРѕРёСЃРєР° РљРЎ СЃ РїСЂРѕС†РµРЅС‚РѕРј РЅРµР·Р°РґРµР№СЃС‚РІРѕРІР°РЅРЅС‹С… С†РµС…РѕРІ >= " << percentage << "%:" << endl;
 	bool found = false;
 	for (const auto& cs : css) {
 		float unusedPercentage = 100.0f - cs.effective_cs;
 		if (unusedPercentage >= percentage) {
 			found = true;
-			cout << "Индекс: " << cs.index << endl;
-			cout << "Имя КС: " << cs.name << endl;
-			cout << "Количество цехов: " << cs.quantity << endl;
-			cout << "Рабочие цехи: " << cs.work_quantity << endl;
-			cout << "Эффективность: " << cs.effective_cs << "%" << endl;
-			cout << "Незадействованные цехи: " << unusedPercentage << "%" << endl;
+			cout << "РРЅРґРµРєСЃ: " << cs.index << endl;
+			cout << "РРјСЏ РљРЎ: " << cs.name << endl;
+			cout << "РљРѕР»РёС‡РµСЃС‚РІРѕ С†РµС…РѕРІ: " << cs.quantity << endl;
+			cout << "Р Р°Р±РѕС‡РёРµ С†РµС…Рё: " << cs.work_quantity << endl;
+			cout << "Р­С„С„РµРєС‚РёРІРЅРѕСЃС‚СЊ: " << cs.effective_cs << "%" << endl;
+			cout << "РќРµР·Р°РґРµР№СЃС‚РІРѕРІР°РЅРЅС‹Рµ С†РµС…Рё: " << unusedPercentage << "%" << endl;
 			cout << "--------------------------------------" << endl;
 		}
 	}
 	if (!found) {
-		cout << "КС с указанным процентом незадействованных цехов не найдены." << endl;
+		cout << "РљРЎ СЃ СѓРєР°Р·Р°РЅРЅС‹Рј РїСЂРѕС†РµРЅС‚РѕРј РЅРµР·Р°РґРµР№СЃС‚РІРѕРІР°РЅРЅС‹С… С†РµС…РѕРІ РЅРµ РЅР°Р№РґРµРЅС‹." << endl;
 	}
 }
 
 void filterSearch() {
-	cout << "Поиск:\n"
-		<< "1 - трубы по имени\n"
-		<< "2 - трубы по статусу ремонта\n"
-		<< "3 - КС по имени\n"
-		<< "4 - КС по проценту незадействованных цехов\n"
-		<< "0 - выйти" << endl;
+	cout << "РџРѕРёСЃРє:\n"
+		<< "1 - С‚СЂСѓР±С‹ РїРѕ РёРјРµРЅРё\n"
+		<< "2 - С‚СЂСѓР±С‹ РїРѕ СЃС‚Р°С‚СѓСЃСѓ СЂРµРјРѕРЅС‚Р°\n"
+		<< "3 - РљРЎ РїРѕ РёРјРµРЅРё\n"
+		<< "4 - РљРЎ РїРѕ РїСЂРѕС†РµРЅС‚Сѓ РЅРµР·Р°РґРµР№СЃС‚РІРѕРІР°РЅРЅС‹С… С†РµС…РѕРІ\n"
+		<< "0 - РІС‹Р№С‚Рё" << endl;
 
-	int choice = getInput<int>("Выберите команду: ", 0, 4);
+	int choice = getInput<int>("Р’С‹Р±РµСЂРёС‚Рµ РєРѕРјР°РЅРґСѓ: ", 0, 4);
 
 	switch (choice) {
 	case 1: {
-		string name = getInput<string>("Введите имя трубы: ", 1, 1);
+		string name = getInput<string>("Р’РІРµРґРёС‚Рµ РёРјСЏ С‚СЂСѓР±С‹: ", 1, 1);
 		filterPipeByName(name);
 		break;
 	}
 	case 2: {
-		int status = getInput<int>("Введите статус ремонта (1 - требует ремонта, 0 - не требует ремонта): ", 0, 1);
+		int status = getInput<int>("Р’РІРµРґРёС‚Рµ СЃС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р° (1 - С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°, 0 - РЅРµ С‚СЂРµР±СѓРµС‚ СЂРµРјРѕРЅС‚Р°): ", 0, 1);
 		filterPipeByRepairStatus(status == 1);
 		break;
 	}
 	case 3: {
-		string name = getInput<string>("Введите имя КС: ", 1, 1);
+		string name = getInput<string>("Р’РІРµРґРёС‚Рµ РёРјСЏ РљРЎ: ", 1, 1);
 		filterCSByName(name);
 		break;
 	}
 	case 4: {
-		float percentage = getInput<float>("Введите минимальный процент незадействованных цехов: ", 0, 100);
+		float percentage = getInput<float>("Р’РІРµРґРёС‚Рµ РјРёРЅРёРјР°Р»СЊРЅС‹Р№ РїСЂРѕС†РµРЅС‚ РЅРµР·Р°РґРµР№СЃС‚РІРѕРІР°РЅРЅС‹С… С†РµС…РѕРІ: ", 0, 100);
 		filterCSByUnusedPercentage(percentage);
 		break;
 	}
 	case 0:
 		return;
 	default:
-		cout << "Неверный выбор. Повторите попытку." << endl;
+		cout << "РќРµРІРµСЂРЅС‹Р№ РІС‹Р±РѕСЂ. РџРѕРІС‚РѕСЂРёС‚Рµ РїРѕРїС‹С‚РєСѓ." << endl;
 	}
 }
 
+void batchEditOrRemove() {
+	Print();
+	cout << "\nРџР°РєРµС‚РЅРѕРµ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ:\n"
+		<< "1 - Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ С‚СЂСѓР±С‹\n"
+		<< "2 - РЈРґР°Р»РёС‚СЊ С‚СЂСѓР±С‹\n"
+		<< "3 - Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РљРЎ\n"
+		<< "4 - РЈРґР°Р»РёС‚СЊ РљРЎ\n"
+		<< "0 - Р’С‹С…РѕРґ\n";
+	int choice = getInput<int>("Р’С‹Р±РµСЂРёС‚Рµ РєРѕРјР°РЅРґСѓ: ", 0, 4);
+
+	if (choice == 0) return;
+
+	unordered_set<int> selectedIndices;
+
+	cout << "Р’РІРµРґРёС‚Рµ РёРЅРґРµРєСЃС‹ РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё (СЂР°Р·РґРµР»РёС‚Рµ РїСЂРѕР±РµР»Р°РјРё, РЅР°РїСЂРёРјРµСЂ: 1 2 3): ";
+	string input;
+	getline(cin, input);
+	stringstream ss(input);
+	int index;
+	while (ss >> index) {
+		selectedIndices.insert(index);
+	}
+
+	if (selectedIndices.empty()) {
+		cout << "РќРµ РІС‹Р±СЂР°РЅРѕ РЅРё РѕРґРЅРѕРіРѕ РёРЅРґРµРєСЃР°." << endl;
+		return;
+	}
+
+	if (choice == 1 || choice == 3) { // Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ
+		for (int idx : selectedIndices) {
+			if (choice == 1) { // Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ С‚СЂСѓР±
+				auto it = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) { return pipe.index == idx; });
+				if (it != pipes.end()) {
+					Pipe updatedPipe = *it;
+					updatedPipe.repairStatus = !updatedPipe.repairStatus; // РџСЂРёРјРµСЂ РёР·РјРµРЅРµРЅРёСЏ СЃС‚Р°С‚СѓСЃР°
+					pipes.erase(it);
+					pipes.insert(updatedPipe);
+					cout << "РўСЂСѓР±Р° СЃ РёРЅРґРµРєСЃРѕРј " << idx << " РѕР±РЅРѕРІР»РµРЅР°." << endl;
+				}
+				else {
+					cout << "РўСЂСѓР±Р° СЃ РёРЅРґРµРєСЃРѕРј " << idx << " РЅРµ РЅР°Р№РґРµРЅР°." << endl;
+				}
+			}
+			else { // Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ РљРЎ
+				auto it = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.index == idx; });
+				if (it != css.end()) {
+					CS updatedCS = *it;
+					updatedCS.work_quantity = getInput<int>(
+						"Р’РІРµРґРёС‚Рµ РЅРѕРІРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СЂР°Р±РѕС‚Р°СЋС‰РёС… С†РµС…РѕРІ РґР»СЏ РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " + to_string(idx) + ": ",
+						0, updatedCS.quantity
+					);
+					updatedCS.effective_cs = updatedCS.work_quantity * 100.0f / updatedCS.quantity;
+					css.erase(it);
+					css.insert(updatedCS);
+					cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << idx << " РѕР±РЅРѕРІР»РµРЅР°." << endl;
+				}
+				else {
+					cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << idx << " РЅРµ РЅР°Р№РґРµРЅР°." << endl;
+				}
+			}
+		}
+	}
+	else { // РЈРґР°Р»РµРЅРёРµ
+		for (int idx : selectedIndices) {
+			if (choice == 2) { // РЈРґР°Р»РµРЅРёРµ С‚СЂСѓР±
+				auto it = find_if(pipes.begin(), pipes.end(), [&](const Pipe& pipe) { return pipe.index == idx; });
+				if (it != pipes.end()) {
+					pipes.erase(it);
+					cout << "РўСЂСѓР±Р° СЃ РёРЅРґРµРєСЃРѕРј " << idx << " СѓРґР°Р»РµРЅР°." << endl;
+				}
+				else {
+					cout << "РўСЂСѓР±Р° СЃ РёРЅРґРµРєСЃРѕРј " << idx << " РЅРµ РЅР°Р№РґРµРЅР°." << endl;
+				}
+			}
+			else { // РЈРґР°Р»РµРЅРёРµ РљРЎ
+				auto it = find_if(css.begin(), css.end(), [&](const CS& cs) { return cs.index == idx; });
+				if (it != css.end()) {
+					css.erase(it);
+					cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << idx << " СѓРґР°Р»РµРЅР°." << endl;
+				}
+				else {
+					cout << "РљРЎ СЃ РёРЅРґРµРєСЃРѕРј " << idx << " РЅРµ РЅР°Р№РґРµРЅР°." << endl;
+				}
+			}
+		}
+	}
+}

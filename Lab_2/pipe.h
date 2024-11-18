@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <iostream>
 #include <string>
 #include <unordered_set>
@@ -7,21 +7,21 @@ using namespace std;
 class Pipe {
 public:
 	int index;
-	string name;                // имя трубы
-	int length;                 // длина трубы
-	int diameter;               // диаметр трубы
-	bool repairStatus;          // характеристика в ремонте
+	string name;                // РёРјСЏ С‚СЂСѓР±С‹
+	int length;                 // РґР»РёРЅР° С‚СЂСѓР±С‹
+	int diameter;               // РґРёР°РјРµС‚СЂ С‚СЂСѓР±С‹
+	bool repairStatus;          // С…Р°СЂР°РєС‚РµСЂРёСЃС‚РёРєР° РІ СЂРµРјРѕРЅС‚Рµ
 
-	// Конструктор класса
+	// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР°
 	Pipe(int index, const string& name, int length, int diameter, bool repairStatus)
 		: index(index), name(name), length(length), diameter(diameter), repairStatus(repairStatus) {}
 
-	// Операторы для сравнения для использования в unordered_set
+	// РћРїРµСЂР°С‚РѕСЂС‹ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ РґР»СЏ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ РІ unordered_set
 	bool operator==(const Pipe& other) const {
 		return index == other.index && name == other.name && length == other.length && diameter == other.diameter && repairStatus == other.repairStatus;
 	}
 
-	// Описание хеш-функции для Pipe
+	// РћРїРёСЃР°РЅРёРµ С…РµС€-С„СѓРЅРєС†РёРё РґР»СЏ Pipe
 	struct Hash {
 		size_t operator()(const Pipe& p) const {
 			return hash<int>()(p.index) ^ hash<string>()(p.name) ^ hash<int>()(p.length) ^ hash<int>()(p.diameter) ^ hash<bool>()(p.repairStatus);
@@ -38,7 +38,7 @@ void removeAll();
 void remove();
 void edit();
 void logInput(const string& message);
-
+void batchEditOrRemove();
 
 template<typename T>
 T getInput(string str, int min, int max) {
@@ -50,7 +50,7 @@ T getInput(string str, int min, int max) {
 			getline(cin, input);
 			logInput(input);
 			if (input.empty()) {
-				cout << "Вы ничего не ввели..." << endl << endl;
+				cout << "Р’С‹ РЅРёС‡РµРіРѕ РЅРµ РІРІРµР»Рё..." << endl << endl;
 				continue;
 			}
 			result = input;
@@ -63,14 +63,14 @@ T getInput(string str, int min, int max) {
 			getline(cin, input);
 			logInput(input);
 			if (input.empty()) {
-				cout << "Вы ничего не ввели..." << endl << endl;
+				cout << "Р’С‹ РЅРёС‡РµРіРѕ РЅРµ РІРІРµР»Рё..." << endl << endl;
 				continue;
 			}
 
 			bool isValid = true;
 			for (char c : input) {
 				if (!isdigit(c)) {
-					cout << "Ошибка ввода числа..." << endl << endl;
+					cout << "РћС€РёР±РєР° РІРІРѕРґР° С‡РёСЃР»Р°..." << endl << endl;
 					isValid = false;
 					break;
 				}
@@ -78,7 +78,7 @@ T getInput(string str, int min, int max) {
 			if (isValid) {
 				try {
 					if (input[0] == '0' && input.size() > 1) {
-						cout << "Число не может начинаться с нуля..." << endl << endl;
+						cout << "Р§РёСЃР»Рѕ РЅРµ РјРѕР¶РµС‚ РЅР°С‡РёРЅР°С‚СЊСЃСЏ СЃ РЅСѓР»СЏ..." << endl << endl;
 						continue;
 					}
 					result = stoi(input);
@@ -86,14 +86,14 @@ T getInput(string str, int min, int max) {
 						return result;
 					}
 					else {
-						cout << "Число не проходит по диапазону..." << endl << endl;
+						cout << "Р§РёСЃР»Рѕ РЅРµ РїСЂРѕС…РѕРґРёС‚ РїРѕ РґРёР°РїР°Р·РѕРЅСѓ..." << endl << endl;
 					}
 				}
 				catch (const invalid_argument& e) {
-					cout << "Ошибка ввода числа..." << endl << endl;
+					cout << "РћС€РёР±РєР° РІРІРѕРґР° С‡РёСЃР»Р°..." << endl << endl;
 				}
 				catch (const out_of_range& e) {
-					cout << "Число вне диапазона значений..." << endl << endl;
+					cout << "Р§РёСЃР»Рѕ РІРЅРµ РґРёР°РїР°Р·РѕРЅР° Р·РЅР°С‡РµРЅРёР№..." << endl << endl;
 				}
 			}
 		}
@@ -104,28 +104,28 @@ T getInput(string str, int min, int max) {
 			getline(cin, input);
 			logInput(input);
 			if (input.empty()) {
-				cout << "Вы ничего не ввели..." << endl << endl;
+				cout << "Р’С‹ РЅРёС‡РµРіРѕ РЅРµ РІРІРµР»Рё..." << endl << endl;
 				continue;
 			}
 
 			try {
 				size_t pos;
-				result = stof(input, &pos);  // Преобразование строки в float
+				result = stof(input, &pos);  // РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЃС‚СЂРѕРєРё РІ float
 				if (pos < input.size()) {
-					cout << "Ошибка: некорректный ввод числа с плавающей точкой." << endl << endl;
+					cout << "РћС€РёР±РєР°: РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ РІРІРѕРґ С‡РёСЃР»Р° СЃ РїР»Р°РІР°СЋС‰РµР№ С‚РѕС‡РєРѕР№." << endl << endl;
 				}
 				else if (result < min || result > max) {
-					cout << "Число вне допустимого диапазона (" << min << " - " << max << ")." << endl << endl;
+					cout << "Р§РёСЃР»Рѕ РІРЅРµ РґРѕРїСѓСЃС‚РёРјРѕРіРѕ РґРёР°РїР°Р·РѕРЅР° (" << min << " - " << max << ")." << endl << endl;
 				}
 				else {
 					return result;
 				}
 			}
 			catch (const invalid_argument&) {
-				cout << "Ошибка ввода числа с плавающей точкой." << endl << endl;
+				cout << "РћС€РёР±РєР° РІРІРѕРґР° С‡РёСЃР»Р° СЃ РїР»Р°РІР°СЋС‰РµР№ С‚РѕС‡РєРѕР№." << endl << endl;
 			}
 			catch (const out_of_range&) {
-				cout << "Число вне диапазона значений." << endl << endl;
+				cout << "Р§РёСЃР»Рѕ РІРЅРµ РґРёР°РїР°Р·РѕРЅР° Р·РЅР°С‡РµРЅРёР№." << endl << endl;
 			}
 		}
 	}
